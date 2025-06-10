@@ -1,0 +1,6 @@
+.env
+internal
+internal_*
+user_service
+mongodb_data
+*.dump
