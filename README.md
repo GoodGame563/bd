@@ -1,9 +1,20 @@
-# Thesis Database Setup
+# Thesis Database Setup (Thesis)
 
-This repository contains all necessary configuration and initialization scripts to launch the database infrastructure for a thesis project. It includes configurations for two PostgreSQL services and a MongoDB setup.
+This repository contains all configuration and initialization scripts for the database infrastructure of the thesis project: "Development of an analytics system for marketplace product grids using neural network technologies for automation and acceleration of assortment analysis".
 
-## 🗂️ Directory Structure
+## Purpose & Architecture
 
+The `bd` directory provides setup for two PostgreSQL services (internal and user) and MongoDB, including schemas, functions, and extension scripts. It is designed for scalable, high-performance storage and retrieval of product, user, and analysis data.
+
+### Main Components
+- `postgresql_internal/`: Internal DB for keywords, products, partitioning
+- `postgresql_user_service/`: User/session/task management
+- `mongo.conf`: MongoDB configuration
+- `initdb/`: SQL scripts for schema and function initialization
+- `extensions/`: PostgreSQL extension installation scripts
+- `.env-clear`: Example environment configuration for DB connection
+
+## Directory Structure
 ```
 ├── postgresql_internal/
 │   ├── postgresql.conf         # Main PostgreSQL config for internal service
@@ -21,42 +32,23 @@ This repository contains all necessary configuration and initialization scripts 
 └── mongo.conf                  # Minimal MongoDB configuration
 ```
 
-## 🧩 Key Components
+## Workflow
+1. Launch DB containers via Docker
+2. Initialize schemas and extensions using provided SQL scripts
+3. System logs and monitoring via PostgreSQL extensions
 
-### PostgreSQL Internal Service
+## Features
+- Partitioned tables for performance
+- Hash indexes for fast lookups
+- UUID v7-based identifiers
+- Session and subscription management
+- Admin user creation and security features
+- MongoDB for flexible storage
+- Performance tuning (shared_buffers, effective_cache_size, etc)
+- Transactional updates and conflict resolution
 
-**Keywords Management:**
-- `keywords` table with unique text constraints
-- Hash indexes for fast lookups (`keyword_text`, `keyword_id`)
-- Partitioned `keyword_products` table with 33 partitions using HASH distribution
-
-**Performance Tuning:**
-- Recommended `shared_buffers`: 4GB
-- Recommended `effective_cache_size`: 6GB
-- `pg_partman_bgw` for automated partition maintenance
-- `pg_stat_statements` for query performance monitoring
-
-### PostgreSQL User Service
-
-**User Management System:**
-- UUID v7-based identifiers using `pg_uuidv7` extension
-- Session tracking with device/browser metadata
-- Subscription management with time-based validity
-
-**Security Features:**
-- Admin user creation with hashed credentials
-- Foreign key constraints between user tables
-- Transactional updates with conflict resolution
-
-### MongoDB
-- Minimalistic configuration for silent operation
-- System logs redirected to `/dev/null`
-- Extensible with additional storage engine configurations
-
-## ⚙️ Configuration Notes
-
+## Configuration Notes
 ### PostgreSQL Settings
-
 | Parameter                | Internal Service | User Service |
 |--------------------------|------------------|--------------|
 | `shared_buffers`         | 4GB             | 1GB          |
@@ -65,7 +57,6 @@ This repository contains all necessary configuration and initialization scripts 
 | `max_parallel_workers`   | 4               | 4            |
 
 ### Required Extensions
-
 ```sql
 -- Must be installed before running schemas
 CREATE EXTENSION pg_partman;
@@ -75,38 +66,18 @@ CREATE EXTENSION "pg_uuidv7";
 CREATE EXTENSION pgcrypto;
 ```
 
-## 🚀 Getting Started
+## Usage
+1. Build and run DB containers using Dockerfiles
+2. Apply SQL scripts in `initdb/` for schema setup
+3. Install extensions from `extensions/`
 
-### Install Dependencies
+## Integration
+- Used by API gateway, AI, and parser services
+- All connection details configured in `.env` files of other repos
 
-```bash
-sudo apt-get install postgresql-14
-sudo apt-get install mongodb
-```
+## Development Notes
+- See thesis for DB schema diagrams and optimization strategies
+- Refer to `README.alt1.md` and original README for more details
 
-### Initialize Databases
-
-```bash
-# For internal service
-psql -f postgresql_internal/initdb/01-schema.sql
-
-# For user service
-psql -f postgresql_user_service/extensions/01-install_extensions.sql
-psql -f postgresql_user_service/initdb/03-schema.sql
-psql -f postgresql_user_service/initdb/02-function.sql
-psql -f postgresql_user_service/initdb/04-base-data.sql
-```
-
-### Start Services
-
-```bash
-sudo systemctl start postgresql
-sudo systemctl start mongod
-```
-
-## ⚠️ Important Considerations
-
-- The `keyword_products` table uses HASH partitioning with modulus 33—ensure your data distribution aligns with this.
-- All stored procedures include error handling for duplicate entries and foreign key violations.
-- MongoDB configuration is intentionally minimal—modify as needed for production environments.
-- The admin user in `04-base-data.sql` uses a SHA-256 hash format—replace with a proper authentication mechanism in production.
+---
+This is a highly detailed README for thesis documentation. Do not overwrite the original README if present.
