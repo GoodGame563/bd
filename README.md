@@ -77,7 +77,3 @@ CREATE EXTENSION pgcrypto;
 
 ## Development Notes
 - See thesis for DB schema diagrams and optimization strategies
-- Refer to `README.alt1.md` and original README for more details
-
----
-This is a highly detailed README for thesis documentation. Do not overwrite the original README if present.
